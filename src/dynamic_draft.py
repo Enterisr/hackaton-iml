@@ -32,6 +32,7 @@ class RandomDynamicBaseline(BaseModel):
         Make a single random draft.
         Can also show the expected format for a prediction.
         """
+        #test for shelly
         draft_class = input_json["draft class"]
         random_single_draft = random.sample(draft_class, 1)[0]
         return random_single_draft
