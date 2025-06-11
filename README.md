@@ -3,7 +3,7 @@
 Welcome to the NBA manager challenge in IML hackathon 2025! <br>
 Follow these instructions to setup your environment, ideally on a virtual environment.
 
-
+itamar hamelec
 ## Data setup 
 
 1. **Install requirements:**
