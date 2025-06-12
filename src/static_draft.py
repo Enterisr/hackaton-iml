@@ -106,6 +106,22 @@ if __name__ == "__main__":
     # Split gold_insts into train and test sets
     X_train, y_train, X_test, y_test, test_meta = split_train_test(gold_insts, test_size=0.2, random_state=42)
 
+    ##use your custom random forest model
+    # #Fit RandomForestRegression model
+    # model = RandomForestRegressor(n_estimators=100, random_state=42, max_depth=8, min_samples_split=8,
+    #                               min_samples_leaf=4, max_features='sqrt')
+    # model.fit(X_train, y_train)
+    # predictions = model.predict(X_test)
+
+    #Fit adaboost
+    # model = AdaBoostRegressor(
+    #     n_estimators=100,
+    #     learning_rate=1.0,
+    #     random_state=42
+    # )
+    # model.fit(X_train, y_train)
+    # predictions = model.predict(X_test)
+
     # Use your custom LinearRegression model
     model = LinearRegression()
     model.fit(X_train, y_train)
@@ -137,6 +153,8 @@ if __name__ == "__main__":
     score, scores = score_prediction(gold_test_insts, pred_insts)
     logging.info(f"{scores} \n Combined score: {score}")
     print("Selected players for last season: " + str(sorted_players[:PLAYERS_TO_CHOOSE]))
+
+
 
 
     # # Determine logging level
