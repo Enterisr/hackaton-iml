@@ -1,19 +1,13 @@
 from utils import read_jsonl    
 import numpy as np
 
+#replace with real big file
 def preprocess(player_stats):
-    # Group by personId first to get one row per player
-    if len(player_stats) > 1:
-        player_stats = player_stats.groupby('personId').agg('median').reset_index()
-    
-    # Select only numeric columns
     numeric_cols = player_stats.select_dtypes(include=[np.number]).columns
     # Drop personId and gameId columns if they exist in numeric_cols
     numeric_cols = [col for col in numeric_cols if col not in ['personId', 'gameId']]
-    
-    # Get feature vector
-    feat = player_stats[numeric_cols].values.tolist()[0]
-    return feat
+    feat = player_stats[numeric_cols].median().values.tolist()
+    return feat;
 
 def split_train_test(instances, test_size=0.2, random_state=42):
     """
