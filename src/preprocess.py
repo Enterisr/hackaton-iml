@@ -327,3 +327,58 @@ def split_train_test(instances, test_size=0.2, random_state=42):
             print(f"  {feat_name}: {overall_mean[i]:.4f}")
 
     return np.array(X_train), np.array(y_train), np.array(X_test), np.array(y_test), test_meta
+
+def process_unlabeled_data(instances):
+    """
+    Processes player data from instances without labels (no next season data).
+    
+    Args:
+        instances (list): List of instances, each containing only current season data
+        
+    Returns:
+        tuple: (features, meta_data)
+            - features: numpy array of player features
+            - meta_data: list of tuples (season_idx, player_id)
+    """
+    # Process the instances for data quality
+    processed_instances = pre_proc_orchestrator(instances)
+    
+    all_features = []
+    meta_data = []  # (season_idx, player_id)
+
+    for season_idx, inst in enumerate(processed_instances):
+        last_season = inst["input"]["last season"]
+        draft_class = inst["input"]["draft class"]
+
+        season_features = []
+        season_pids = []
+        
+        for pid in draft_class:
+            player_stats = last_season[last_season.personId == pid]
+            if player_stats.empty:
+                feat = [0] * len(INTRESTING_FEATURES)
+            else:
+                # Extract features using the preprocess function
+                feat = preprocess(player_stats)
+            
+            season_features.append(feat)
+            season_pids.append(pid)
+        
+        # Print mean features for this season
+        if season_features:
+            print(f"Season {season_idx} mean features:")
+            mean_features = np.mean(season_features, axis=0)
+            for i, feat_name in enumerate(INTRESTING_FEATURES):
+                print(f"  {feat_name}: {mean_features[i]:.4f}")
+        
+        all_features.extend(season_features)
+        meta_data.extend([(season_idx, pid) for pid in season_pids])
+
+    # Print overall mean features
+    if all_features:
+        print("\nOverall mean features:")
+        overall_mean = np.mean(all_features, axis=0)
+        for i, feat_name in enumerate(INTRESTING_FEATURES):
+            print(f"  {feat_name}: {overall_mean[i]:.4f}")
+
+    return np.array(all_features), meta_data

@@ -11,14 +11,11 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "--gold=./train.sample.jsonl",
+                "--in=./train.sample.jsonl",
+                "--model=linear",
+                "--out=outfile"
             ]
         },
-        {
-            "name": "Python Debugger: Python File",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${file}"
-        }
+
     ]
 }

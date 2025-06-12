@@ -16,6 +16,7 @@ from io import StringIO
 from collections import defaultdict
                  
 # Local imports
+from LinearRegression import LinearRegression
 from utils import NUM_OF_DRAFTED_PLAYERS, BaseModel
 #----
 
@@ -38,6 +39,7 @@ class RandomDynamicBaseline(BaseModel):
 
 model_router = {
     "random": RandomDynamicBaseline,
+    "linear":LinearRegression
     # @TODO: Add here a prediction class for your own models following the same
     # input and output format as the provided baselines
 }
