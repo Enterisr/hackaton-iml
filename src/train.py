@@ -18,7 +18,7 @@ from sklearn.model_selection import train_test_split
 from utils import read_jsonl, score_prediction
 from preprocess import preprocess, split_train_test
 from LinearRegression import LinearRegression
-
+PLAYERS_TO_CHOOSE = 10
 if __name__ == "__main__":
     # Parse command line arguments
     args = docopt(__doc__)
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         # Copy input and uid from gold_insts
         pred_insts.append({
             "input": gold_insts[season_idx]["input"],
-            "output": sorted_players[:10]
+            "output": sorted_players[:PLAYERS_TO_CHOOSE]
         })
 
     # Only keep test seasons for gold_insts
@@ -67,5 +67,5 @@ if __name__ == "__main__":
 
     score, scores = score_prediction(gold_test_insts, pred_insts)
     logging.info(f"{scores} \n Combined score: {score}")
-    print("selected players: " +str(sorted_players[:10]))
+    print("selected players for last season: " +str(sorted_players[:PLAYERS_TO_CHOOSE]))
 
