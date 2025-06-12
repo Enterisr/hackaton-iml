@@ -1,14 +1,19 @@
-from utils import read_jsonl
-#replace with real big file
-def preprocess():
-    seasons  = read_jsonl("train.sample.jsonl")
-    for season in seasons:
-        df_season = season["input"]["last season"]
-        people = df_season.groupby("personId")
-        for person_id, group in people:
-            print(f"Person: {person_id}")
-            print(group)
+from utils import read_jsonl    
+import numpy as np
 
+def preprocess(player_stats):
+    # Group by personId first to get one row per player
+    if len(player_stats) > 1:
+        player_stats = player_stats.groupby('personId').agg('median').reset_index()
+    
+    # Select only numeric columns
+    numeric_cols = player_stats.select_dtypes(include=[np.number]).columns
+    # Drop personId and gameId columns if they exist in numeric_cols
+    numeric_cols = [col for col in numeric_cols if col not in ['personId', 'gameId']]
+    
+    # Get feature vector
+    feat = player_stats[numeric_cols].values.tolist()[0]
+    return feat
 
 def split_train_test(instances, test_size=0.2, random_state=42):
     """
@@ -18,7 +23,6 @@ def split_train_test(instances, test_size=0.2, random_state=42):
     """
     from sklearn.model_selection import train_test_split
     from utils import score_team_on_season
-    import numpy as np
 
     X_train, y_train, X_test, y_test = [], [], [], []
     test_meta = []  # (season_idx, player_id)
@@ -37,8 +41,7 @@ def split_train_test(instances, test_size=0.2, random_state=42):
                 numeric_cols = last_season.select_dtypes(include=[np.number]).columns
                 feat = [0] * len(numeric_cols)
             else:
-                numeric_cols = player_stats.select_dtypes(include=[np.number]).columns
-                feat = player_stats[numeric_cols].sum().values.tolist()
+               feat =  preprocess(player_stats)
             features.append(feat)
             targets.append(score_team_on_season([pid], next_season))
             pids.append(pid)
