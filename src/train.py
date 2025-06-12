@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # Fit LinearRegression model using train_insts
     model = LinearRegression()
-    model.fit_or_load(X_train, y_train)
+    model.fit(X_train, y_train)
 
     predictions = model.predict({'X': X_test})
 

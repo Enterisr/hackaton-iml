@@ -35,7 +35,7 @@ class LinearRegression(BaseModel):
             except Exception as e:
                 print(f"Warning: Failed to load weights from {weights_path}: {e}")
 
-    def fit_or_load(self, X, y, weights_path=None, force_train=False):
+    def fit(self, X, y, weights_path=None, force_train=False):
         """
         Fit linear model.
         X: 2D numpy array (n_samples, n_features)

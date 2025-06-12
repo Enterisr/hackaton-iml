@@ -81,12 +81,6 @@ class RandomStaticBaseline(BaseModel):
         random_static_draft = random.sample(draft_class, NUM_OF_DRAFTED_PLAYERS)
         return random_static_draft
 
-
-# model_router = {
-#     "random": RandomStaticBaseline,
-# }
-    
-
 def load_model_and_train(gold_path,model_name):
     # Check if gold path is provided
     if not gold_path:
@@ -147,7 +141,7 @@ def use_model(inp_fn, model_name):
         # Copy input from input_insts
         pred_insts.append({
             "input": input_insts[season_idx]["input"],
-            "output": sorted_players[:NUM_OF_DRAFTED_PLAYERS]
+            "output": sorted_players[:PLAYERS_TO_CHOOSE]
         })
     
     return  model,pred_insts
