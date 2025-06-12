@@ -75,7 +75,7 @@ class RandomStaticBaseline(BaseModel):
         random_static_draft = random.sample(draft_class, NUM_OF_DRAFTED_PLAYERS)
         return random_static_draft
 
-
+#bla
 model_router = {
     "random": RandomStaticBaseline,
 }
