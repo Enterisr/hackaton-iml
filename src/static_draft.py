@@ -13,10 +13,49 @@ import random
 import json
 import pandas as pd
 from io import StringIO
-                 
+#from sklearn import LinearRegression
+from collections import defaultdict
+import json
+import os
+
+
 # Local imports
 from utils import NUM_OF_DRAFTED_PLAYERS, BaseModel
 #----
+
+def average_stats_matrix(data):
+    exclude_keys = {
+        "gameId", "playerteamName", "opponentteamName",
+        "season", "next season uid"
+    }
+
+    player_entries = defaultdict(list)
+    for entry in data:
+        player_entries[entry["personId"]].append(entry)
+
+    rows = []
+    all_keys = set()
+
+    for person_id, entries in player_entries.items():
+        sums = defaultdict(float)
+        count = len(entries)
+
+        for entry in entries:
+            for key, value in entry.items():
+                if key not in exclude_keys and isinstance(value, (int, float)):
+                    sums[key] += value
+                    all_keys.add(key)
+
+        row = {"personId": person_id}
+        for key in all_keys:
+            if key != "personId":
+                row[key] = sums[key] / count
+        rows.append(row)
+
+    sorted_columns = ["personId"] + sorted(k for k in all_keys if k != "personId")
+    df = pd.DataFrame(rows)[sorted_columns]
+    return df
+
 
 
 class RandomStaticBaseline(BaseModel):
@@ -25,6 +64,8 @@ class RandomStaticBaseline(BaseModel):
     """
     def __init__(self):
         super().__init__()
+
+
 
     def predict(self, input_json):
         """
@@ -41,35 +82,44 @@ model_router = {
 
 
 if __name__ == "__main__":
+
+        file_path = os.path.join(os.path.dirname(__file__), 'sample_season_1 (1).json')
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            data = data["input"]["last season"]
+            data_y= data["input"]["next season"]
+
+        matrix_x = average_stats_matrix(data)
+        matrix_y = average_stats_matrix(data_y)
     # Parse command line arguments
-    args = docopt(__doc__)
-    inp_fn = Path(args["--in"]) if args["--in"] else None
-    model_name = args["--model"]
-    out_folder = Path(args["--out"]) if args["--out"] else Path("./tmp.out")
-
-    # Determine logging level
-    debug = args["--debug"]
-    if debug:
-        logging.basicConfig(level = logging.DEBUG)
-    else:
-        logging.basicConfig(level = logging.INFO)
-
-    # determine model
-    model = model_router[model_name]()
-
-    # Read all test instances
-    test_insts = [json.loads(line) for line in open(inp_fn, encoding = "utf8")]
-
-    # Make predictions
-    for test_inst in tqdm(test_insts):
-        test_inst["output"] = model.predict(test_inst["input"])
-
-    # Write to file
-    out_str = "\n".join(map(json.dumps, test_insts))
-    out_fn = out_folder / f"{model.name}.jsonl"
-    logging.info(f"writing to {out_fn}")
-    with open(out_fn, "w", encoding = "utf8") as fout:
-        fout.write(out_str)        
-
-    # End
-    logging.info("DONE")
+    # args = docopt(__doc__)
+    # inp_fn = Path(args["--in"]) if args["--in"] else None
+    # model_name = args["--model"]
+    # out_folder = Path(args["--out"]) if args["--out"] else Path("./tmp.out")
+    #
+    # # Determine logging level
+    # debug = args["--debug"]
+    # if debug:
+    #     logging.basicConfig(level = logging.DEBUG)
+    # else:
+    #     logging.basicConfig(level = logging.INFO)
+    #
+    # # determine model
+    # model = model_router[model_name]()
+    #
+    # # Read all test instances
+    # test_insts = [json.loads(line) for line in open(inp_fn, encoding = "utf8")]
+    #
+    # # Make predictions
+    # for test_inst in tqdm(test_insts):
+    #     test_inst["output"] = model.predict(test_inst["input"])
+    #
+    # # Write to file
+    # out_str = "\n".join(map(json.dumps, test_insts))
+    # out_fn = out_folder / f"{model.name}.jsonl"
+    # logging.info(f"writing to {out_fn}")
+    # with open(out_fn, "w", encoding = "utf8") as fout:
+    #     fout.write(out_str)
+    #
+    # # End
+    # logging.info("DONE")
