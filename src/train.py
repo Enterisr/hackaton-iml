@@ -13,6 +13,9 @@ import json
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import AdaBoostRegressor
+
 
 # Local imports
 from utils import read_jsonl, score_prediction
@@ -37,10 +40,27 @@ if __name__ == "__main__":
     X_train, y_train, X_test, y_test, test_meta = split_train_test(gold_insts, test_size=0.2, random_state=42)
 
     # Fit LinearRegression model using train_insts
-    model = LinearRegression()
-    model.fit(X_train, y_train)
+    # model = LinearRegression()
+    # model.fit(X_train, y_train)
 
-    predictions = model.predict({'X': X_test})
+
+
+    #Fit RandomForestRegression model
+    # model = RandomForestRegressor(n_estimators=100, random_state=42, max_depth=8, min_samples_split=8,
+    #                               min_samples_leaf=4, max_features='sqrt')
+    # model.fit(X_train, y_train)
+    #predictions = model.predict(X_test)
+
+    #predictions = model.predict({'X': X_test})
+
+    #Fit adaboost
+    model = AdaBoostRegressor(
+        n_estimators=100,
+        learning_rate=1.0,
+        random_state=42
+    )
+    model.fit(X_train, y_train)
+    predictions = model.predict(X_test)
 
     assert(len(y_test) == len(predictions))
 
