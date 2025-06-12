@@ -2,3 +2,4 @@ data
 nba_data.zip
 out.json
 sample_seasons
+*.jsonl
