@@ -13,6 +13,7 @@ import json
                  
 # Local imports
 from utils import read_jsonl, score_prediction
+from preprocess import preprocess
 
 #----
 
@@ -28,7 +29,6 @@ if __name__ == "__main__":
         logging.basicConfig(level = logging.DEBUG)
     else:
         logging.basicConfig(level = logging.INFO)
-
     # Start computation
     gold_insts = read_jsonl(gold_fn)
     pred_insts = read_jsonl(pred_fn)
