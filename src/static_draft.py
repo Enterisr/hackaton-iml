@@ -17,8 +17,10 @@ from io import StringIO
 from collections import defaultdict
 import json
 import os
-
-
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from utils import pre_proc_orchestrator
+                 
 # Local imports
 from utils import NUM_OF_DRAFTED_PLAYERS, BaseModel
 #----
@@ -79,18 +81,28 @@ class RandomStaticBaseline(BaseModel):
 model_router = {
     "random": RandomStaticBaseline,
 }
+    
 
 
 if __name__ == "__main__":
+    file_path = os.path.join(os.path.dirname(__file__), 'sample_season_1.json')
+    processed_df = pre_proc_orchestrator(file_path)
+    print("\nSuccessfully processed data (first 5 rows):")
+    print(processed_df.head())
+    print("\nFinal shape of filtered DataFrame:", processed_df.shape)
 
-        file_path = os.path.join(os.path.dirname(__file__), 'sample_season_1 (1).json')
-        with open(file_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            data = data["input"]["last season"]
-            data_y= data["input"]["next season"]
+    # file_path = os.path.join(os.path.dirname(__file__), 'train.sample.jsonl')
+    # with open(file_path, 'r', encoding='utf-8') as f:
+    #     data = json.load(f)
+    #     data = data["input"]["last season"]
+    #     data_y= data["input"]["next season"]
 
-        matrix_x = average_stats_matrix(data)
-        matrix_y = average_stats_matrix(data_y)
+    # matrix_x = average_stats_matrix(data)
+    # matrix_y = average_stats_matrix(data_y)
+    # print(f'matrix_X is: {matrix_x.head(3)}')
+    # print(f'matrix_y is: {matrix_y.head(3)}')
+
+
     # Parse command line arguments
     # args = docopt(__doc__)
     # inp_fn = Path(args["--in"]) if args["--in"] else None
