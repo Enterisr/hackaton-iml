@@ -1,5 +1,5 @@
 """ Usage:
-    <file-name> --in=INPUT_FILE --model=MODEL_NAME --out=OUTPUT_FILE [--debug]
+    <file-name> --gold=INPUT_FILE [--debug]
 """
 # External imports
 import logging
@@ -13,17 +13,21 @@ import random
 import json
 import pandas as pd
 from io import StringIO
-#from sklearn import LinearRegression
 from collections import defaultdict
 import json
 import os
 import numpy as np
-from sklearn.linear_model import LinearRegression
-from utils import pre_proc_orchestrator
+# Remove sklearn import and use your own implementation
+# from sklearn.linear_model import LinearRegression
                  
 # Local imports
-from utils import NUM_OF_DRAFTED_PLAYERS, BaseModel
+from utils import NUM_OF_DRAFTED_PLAYERS, BaseModel, score_prediction
+from preprocess import split_train_test,pre_proc_orchestrator
+# Import your custom LinearRegression
+from LinearRegression import LinearRegression
+
 #----
+PLAYERS_TO_CHOOSE = 10
 
 def average_stats_matrix(data):
     exclude_keys = {
@@ -78,37 +82,63 @@ class RandomStaticBaseline(BaseModel):
         return random_static_draft
 
 
-model_router = {
-    "random": RandomStaticBaseline,
-}
+# model_router = {
+#     "random": RandomStaticBaseline,
+# }
     
 
 
 if __name__ == "__main__":
-    file_path = os.path.join(os.path.dirname(__file__), 'sample_season_1.json')
-    processed_df = pre_proc_orchestrator(file_path)
-    print("\nSuccessfully processed data (first 5 rows):")
-    print(processed_df.head())
-    print("\nFinal shape of filtered DataFrame:", processed_df.shape)
+    args = docopt(__doc__)
+    gold_path = args["--gold"] if args["--gold"] else None
+    out_folder = Path("./tmp.out")
+    
+    # Check if gold path is provided
+    if not gold_path:
+        logging.error("No gold instances provided. Use --gold=INPUT_FILE")
+        exit(1)
+    
+    # Load gold instances for later use
+    from utils import read_jsonl
+    gold_insts = read_jsonl(gold_path)
+    gold_insts = pre_proc_orchestrator(gold_insts)
+    
+    # Split gold_insts into train and test sets
+    X_train, y_train, X_test, y_test, test_meta = split_train_test(gold_insts, test_size=0.2, random_state=42)
 
-    # file_path = os.path.join(os.path.dirname(__file__), 'train.sample.jsonl')
-    # with open(file_path, 'r', encoding='utf-8') as f:
-    #     data = json.load(f)
-    #     data = data["input"]["last season"]
-    #     data_y= data["input"]["next season"]
+    # Use your custom LinearRegression model
+    model = LinearRegression()
+    model.fit(X_train, y_train)
+ 
+    predictions = model.predict({'X': X_test})  # Use the format expected by your custom class
 
-    # matrix_x = average_stats_matrix(data)
-    # matrix_y = average_stats_matrix(data_y)
-    # print(f'matrix_X is: {matrix_x.head(3)}')
-    # print(f'matrix_y is: {matrix_y.head(3)}')
+    assert(len(y_test) == len(predictions))
+
+    # --- Convert predictions to season-level structure for score_prediction ---
+    # Group predictions by season
+    season_pred_dict = defaultdict(list)
+    for (season_idx, pid), pred_score in zip(test_meta, predictions):
+        season_pred_dict[season_idx].append((pid, pred_score))
+
+    pred_insts = []
+    for season_idx in sorted(season_pred_dict.keys()):
+        # Sort players by predicted score (descending)
+        sorted_players = [pid for pid, _ in sorted(season_pred_dict[season_idx], key=lambda x: -x[1])]
+        # Copy input and uid from gold_insts
+        pred_insts.append({
+            "input": gold_insts[season_idx]["input"],
+            "output": sorted_players[:PLAYERS_TO_CHOOSE]
+        })
+
+    # Only keep test seasons for gold_insts
+    test_season_idxs = sorted(season_pred_dict.keys())
+    gold_test_insts = [gold_insts[i] for i in test_season_idxs]
+
+    score, scores = score_prediction(gold_test_insts, pred_insts)
+    logging.info(f"{scores} \n Combined score: {score}")
+    print("Selected players for last season: " + str(sorted_players[:PLAYERS_TO_CHOOSE]))
 
 
-    # Parse command line arguments
-    # args = docopt(__doc__)
-    # inp_fn = Path(args["--in"]) if args["--in"] else None
-    # model_name = args["--model"]
-    # out_folder = Path(args["--out"]) if args["--out"] else Path("./tmp.out")
-    #
     # # Determine logging level
     # debug = args["--debug"]
     # if debug:
